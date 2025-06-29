@@ -1,0 +1,36 @@
+"async frame relay emulation"
+
+This is a partial implementation of IETF Frame Relay that is intended to run over asynchronous serial interfaces. For frame relay over synchronous
+(i.e. 8 megabit) V.35 serial, you will need to implement a synchronous serial controller that exposes to the host machine running this program as a
+serial port. 
+
+This supports:
+- Linux, with either the new or old (pre-kernel 2.4) tun/tap device
+- FreeBSD and NetBSD
+- OS X (without any third-party kexts)
+
+To use this, you must first set the baud rate of your serial port:
+# stty -F /dev/tty00 115200
+
+You can then use the program:
+# ./async_frame_relay /dev/tty00 301 dte mylink.pcap
+                      AAAAAAAAAA BBB CCC DDDDDDDDDDD
+A = serial device
+B = DLCI, which must be the same on both sides
+C = dte, dce, or nni (one side must be the inverse of the other; use nni for no distinction)
+D = packet capture file, this is a normal libpcap file
+
+Once that's done, you can configure the resultant interface that gets created:
+# ifconfig tun0 198.18.50.2 198.18.50.1
+                AAAAAAAAAAA BBBBBBBBBBB
+A = my IP
+B = peer's IP
+Linux users will use this instead:
+# ifconfig tun0 198.18.50.2 dstaddr 198.18.50.1
+
+Be sure to set the MTU to 1500 if it isn't already the default:
+# ifconfig tun0 mtu 1500
+
+If you wish to use IPv6:
+# ifconfig tun0 500::1 500::2
+
